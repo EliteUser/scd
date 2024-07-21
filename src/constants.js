@@ -1,5 +1,5 @@
 export const DOWNLOADER_URL = 'https://scdler.com/';
-export const APP_PORT = 3000;
+export const APP_PORT = process.env.PORT ||  3001;
 
 export const DOWNLOADER_INPUT_SELECTOR = 'input';
 export const DOWNLOADER_SUBMIT_SELECTOR = 'button[type="submit"]';

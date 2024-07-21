@@ -53,7 +53,11 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({url: trackUrl, name: trackName, album: albumName}),
+                body: JSON.stringify({
+                    url: trackUrl.trim(),
+                    name: trackName.trim(),
+                    album: albumName.trim()
+                }),
             });
 
             if (!response.ok) {

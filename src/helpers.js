@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import https from "node:https";
 import path from "node:path";
 import fs from "node:fs";
 import axios from "axios";
@@ -55,7 +54,7 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
     const browser = await puppeteer.launch({headless: true});
     const page = await browser.newPage();
 
-    const downloadFolder = getId();
+    const downloadFolder = `track_${getId()}`;
 
     console.info(`Starting download assets for track: ${name}`);
 

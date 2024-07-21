@@ -1,11 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 
-import {APP_PORT, DEFAULT_ALBUM_NAME, DOWNLOADER_URL} from "./constants.js";
-import {getProcessedTrack} from "./helpers.js";
+import {APP_PORT} from "../src/constants.js";
+import {getProcessedTrack} from "../src/helpers.js";
 
 const app = express();
-const port = APP_PORT;
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -13,16 +12,16 @@ app.use(cors());
 
 /* Route to handle track download requests */
 app.post('/download', async (req, res) => {
-    const {url, name, album = DEFAULT_ALBUM_NAME} = req.body;
+    const {url, name, album} = req.body;
 
     if (!url || !name) {
         return res.status(400).send('URL and name are required');
     }
 
     const options = {
-        url,
-        name,
-        album
+        url: url.trim(),
+        name: name.trim(),
+        album: album.trim()
     };
 
     try {
@@ -41,6 +40,8 @@ app.post('/download', async (req, res) => {
 });
 
 /* Start the server */
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+app.listen(APP_PORT, () => {
+    console.log(`Server is running on http://localhost:${APP_PORT}`);
 });
+
+export default app;
