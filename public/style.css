@@ -1,0 +1,99 @@
+body {
+    font-family: Inter, sans-serif;
+    background-color: #f8f9fa;
+    color: #414246;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 320px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    font-size: 24px;
+    margin: 0 0 24px;
+}
+
+.form-wrapper {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+}
+
+.form-control {
+    display: flex;
+    flex-direction: column;
+    row-gap: 4px;
+    width: 100%;
+}
+
+.form-control label {
+    font-size: 14px;
+}
+
+.form-input {
+    display: flex;
+    flex-grow: 1;
+    padding: 12px;
+    color: inherit;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    outline-color:  #007bff;
+}
+
+.btn {
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #007bff;
+}
+
+.btn-primary:hover {
+    color: #fff;
+    background-color: #0056b3;
+}
+
+/* Loader overlay */
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Spinner */
+.spinner {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
