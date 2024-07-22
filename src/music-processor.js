@@ -3,13 +3,14 @@ import path from "node:path";
 import NodeID3 from 'node-id3';
 
 import {DEFAULT_ALBUM_NAME, IMAGE_EXTENSIONS} from "./constants.js";
+import {getId} from "./helpers.js";
 
 const getFileTags = (fileName, fileAlbum) => {
     const [artist, title] = fileName.split(' - ');
 
     return {
         artist,
-        performerInfo: artist,
+        performerInfo: getId(),
         title,
         album: fileAlbum ? fileAlbum : DEFAULT_ALBUM_NAME
     };

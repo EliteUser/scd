@@ -15,7 +15,7 @@ import {
 } from "./constants.js";
 import {processTrack} from "./music-processor.js";
 
-const getId = () => {
+export const getId = () => {
     return crypto.randomBytes(16).toString('hex').slice(0, 8);
 }
 

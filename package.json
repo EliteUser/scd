@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node src/index.js"
   },
+  "engines": {
+    "node": "16"
+  },
   "type": "module",
   "keywords": [],
   "author": "",
@@ -15,6 +18,6 @@
     "cors": "^2.8.5",
     "express": "4.19.2",
     "node-id3": "0.2.6",
-    "puppeteer": "22.13.1"
+    "puppeteer": "^13.0.0"
   }
 }
