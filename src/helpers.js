@@ -74,6 +74,10 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
             const trackUrl = await page.$eval(DOWNLOADER_DOWNLOAD_SELECTOR, a => a.href);
             const imageUrl = await page.$eval(DOWNLOADER_IMAGE_SELECTOR, img => img.src);
 
+            if (!trackUrl || !imageUrl) {
+                reject(new Error('Failed to download track assets'));
+            }
+
             /* Create folder for download */
             if (!fs.existsSync(downloadFolder)) {
                 fs.mkdirSync(downloadFolder);

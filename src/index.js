@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 
-import {APP_PORT} from "../src/constants.js";
-import {getProcessedTrack} from "../src/helpers.js";
+import {APP_PORT} from "./constants.js";
+import {getProcessedTrack} from "./helpers.js";
 
 const app = express();
 
