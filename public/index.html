@@ -27,6 +27,11 @@
                 <input type="text" id="albumName" class="form-input" placeholder="Music">
             </div>
 
+            <div class="form-control">
+                <label for="lyrics">Lyrics (Optional)</label>
+                <textarea id="lyrics" class="form-input" rows="6"></textarea>
+            </div>
+
             <button type="submit" id="downloadButton" class="btn btn-primary">Download</button>
         </div>
     </form>
@@ -41,6 +46,8 @@
         const trackUrl = document.getElementById('trackUrl').value;
         const trackName = document.getElementById('trackName').value;
         const albumName = document.getElementById('albumName').value;
+        const lyrics = document.getElementById('lyrics').value;
+
         const downloadButton = document.getElementById('downloadButton');
         const loaderOverlay = document.getElementById('loaderOverlay');
 
@@ -54,9 +61,10 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    url: trackUrl.trim(),
-                    name: trackName.trim(),
-                    album: albumName.trim()
+                    url: trackUrl?.trim(),
+                    name: trackName?.trim(),
+                    album: albumName?.trim(),
+                    lyrics: lyrics?.trim()
                 }),
             });
 
@@ -67,6 +75,7 @@
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
+
             a.href = url;
             a.download = `${trackName}.mp3`;
             document.body.appendChild(a);

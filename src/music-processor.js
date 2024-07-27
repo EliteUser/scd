@@ -1,18 +1,24 @@
-import fs from "node:fs";
-import path from "node:path";
+import fs from 'node:fs';
+import path from 'node:path';
 import NodeID3 from 'node-id3';
 
-import {DEFAULT_ALBUM_NAME, IMAGE_EXTENSIONS} from "./constants.js";
-import {getId} from "./helpers.js";
+import {DEFAULT_ALBUM_NAME, IMAGE_EXTENSIONS} from './constants.js';
+import {getId} from './helpers.js';
 
-const getFileTags = (fileName, fileAlbum) => {
+const getFileTags = (options) => {
+    const {fileName, fileAlbum, lyrics} = options;
+
     const [artist, title] = fileName.split(' - ');
 
     return {
         artist,
         performerInfo: getId(),
         title,
-        album: fileAlbum ? fileAlbum : DEFAULT_ALBUM_NAME
+        album: fileAlbum ? fileAlbum : DEFAULT_ALBUM_NAME,
+        unsynchronisedLyrics: {
+            language: 'eng',
+            text: lyrics
+        }
     };
 };
 
@@ -40,11 +46,11 @@ const getImageTags = (name) => {
 }
 
 export const processTrack = async (options) => {
-    const {folderPath, name, album} = options;
+    const {folderPath, name, album, lyrics} = options;
 
     const filePath = path.join('./', folderPath, `${name}.mp3`);
 
-    const nameTags = getFileTags(name, album);
+    const nameTags = getFileTags({fileName: name, fileAlbum: album, lyrics});
     const imageTags = getImageTags(filePath);
 
     const tags = {

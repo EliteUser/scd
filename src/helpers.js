@@ -1,8 +1,8 @@
-import crypto from "node:crypto";
-import path from "node:path";
-import fs from "node:fs";
-import axios from "axios";
-import puppeteer from "puppeteer";
+import crypto from 'node:crypto';
+import path from 'node:path';
+import fs from 'node:fs';
+import axios from 'axios';
+import puppeteer from 'puppeteer';
 
 import {
     DEFAULT_ALBUM_NAME,
@@ -12,8 +12,8 @@ import {
     DOWNLOADER_INPUT_SELECTOR,
     DOWNLOADER_SUBMIT_SELECTOR,
     DOWNLOADER_URL
-} from "./constants.js";
-import {processTrack} from "./music-processor.js";
+} from './constants.js';
+import {processTrack} from './music-processor.js';
 
 export const getId = () => {
     return crypto.randomBytes(16).toString('hex').slice(0, 8);
@@ -105,7 +105,7 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
 };
 
 export const getProcessedTrack = async (options) => {
-    const {url, name = DEFAULT_TRACK_NAME, album = DEFAULT_ALBUM_NAME} = options;
+    const {url, name = DEFAULT_TRACK_NAME, album = DEFAULT_ALBUM_NAME, lyrics} = options;
 
     const folderPath = await downloadTrackAssets(url, name);
 
@@ -114,6 +114,9 @@ export const getProcessedTrack = async (options) => {
     }, 60000);
 
     return await processTrack({
-        folderPath, name, album
+        folderPath,
+        name,
+        album,
+        lyrics
     });
 }
