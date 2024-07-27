@@ -24,7 +24,7 @@ const getFileTags = (options) => {
 
 const getImageTags = (name) => {
     for (const ext of IMAGE_EXTENSIONS) {
-        const imagePath = `${name.split('.')[0]}${ext}`;
+        const imagePath = name.replace('.mp3', ext);
 
         if (fs.existsSync(imagePath)) {
             const imageBuffer = fs.readFileSync(imagePath);

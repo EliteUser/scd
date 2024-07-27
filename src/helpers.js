@@ -72,8 +72,12 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
             /* Click the submit button */
             await page.click(DOWNLOADER_SUBMIT_SELECTOR);
 
-            /* Wait for the download link to appear */
-            await page.waitForSelector(DOWNLOADER_DOWNLOAD_SELECTOR, {timeout: 60000});
+            /* Wait for the download link and image to appear */
+            await Promise.all([
+                page.waitForSelector(DOWNLOADER_DOWNLOAD_SELECTOR, {timeout: 60000}),
+                page.waitForSelector(DOWNLOADER_IMAGE_SELECTOR, {timeout: 60000})
+
+            ]);
 
             const trackUrl = await page.$eval(DOWNLOADER_DOWNLOAD_SELECTOR, a => a.href);
             const imageUrl = await page.$eval(DOWNLOADER_IMAGE_SELECTOR, img => img.src);
