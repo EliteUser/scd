@@ -6,9 +6,9 @@ on:
       - master
 
 env:
-  GITHUB_REPO: "https://github.com/EliteUser/scd.git"
-  APP_NAME: "sc-downloader"
-  APP_PATH: "/usr/apps/sc-downloader"
+  GITHUB_REPO: https://github.com/EliteUser/scd.git
+  APP_NAME: sc-downloader
+  APP_PATH: /usr/apps/sc-downloader
 
 jobs:
   deploy:
@@ -26,12 +26,12 @@ jobs:
     - name: Deploy to VPS
       run: |
         ssh -o StrictHostKeyChecking=no root@45.159.248.213 '
-        # Navigate to application directory or clone repository if not present
+        # Navigate to the application directory or clone repository if not present
         if [ ! -d "$APP_PATH/.git" ]; then
-          git clone $GITHUB_REPO $APP_PATH
+          sudo git clone $GITHUB_REPO $APP_PATH
         fi
         cd $APP_PATH
-        git pull origin master
+        sudo git pull origin master
 
         # Build the Docker image
         sudo docker build -t $APP_NAME .
@@ -43,5 +43,5 @@ jobs:
         fi
 
         # Run the new container
-        sudo docker run -d -p 80:3000 --name $APP_NAME $APP_NAME
+        sudo docker run -d -p 3000:3000 --name $APP_NAME $APP_NAME
         '
