@@ -1,0 +1,37 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  GITHUB_REPO: "https://github.com/EliteUser/scd.git"
+  APP_NAME: "sc-downloader"
+  APP_PATH: "/usr/apps"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.8.1
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy to VPS
+      run: |
+        ssh -o StrictHostKeyChecking=no root@45.159.248.213 '
+        cd $APP_PATH ||
+        git clone $GITHUB_REPO $APP_PATH &&
+        cd $APP_PATH &&
+        git pull origin master &&
+        sudo docker build -t $APP_NAME . &&
+        sudo docker stop $APP_NAME || true &&
+        sudo docker rm $APP_NAME || true &&
+        sudo docker run -d -p 3000:3000 --name $APP_NAME $APP_NAME
+        '
