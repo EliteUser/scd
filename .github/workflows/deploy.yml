@@ -28,6 +28,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no root@45.159.248.213 '
         # Navigate to the application directory or clone repository if not present
         if [ ! -d "$APP_PATH/.git" ]; then
+          echo 'Cloning repository... $GITHUB_REPO'
           sudo git clone $GITHUB_REPO $APP_PATH
         fi
         cd $APP_PATH
