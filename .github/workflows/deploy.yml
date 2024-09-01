@@ -8,7 +8,7 @@ on:
 env:
   GITHUB_REPO: "https://github.com/EliteUser/scd.git"
   APP_NAME: "sc-downloader"
-  APP_PATH: "/usr/apps/${{ env.APP_NAME }}"
+  APP_PATH: "/usr/apps/sc-downloader"
 
 jobs:
   deploy:
