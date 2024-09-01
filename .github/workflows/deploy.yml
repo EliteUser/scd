@@ -5,11 +5,6 @@ on:
     branches:
       - master
 
-env:
-  GITHUB_REPO: https://github.com/EliteUser/scd.git
-  APP_NAME: sc-downloader
-  APP_PATH: /usr/apps/sc-downloader
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -27,22 +22,21 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no root@45.159.248.213 '
         # Navigate to the application directory or clone repository if not present
-        if [ ! -d "$APP_PATH/.git" ]; then
-          echo 'Cloning repository... $GITHUB_REPO'
-          sudo git clone $GITHUB_REPO $APP_PATH
+        if [ ! -d "/usr/apps/sc-downloader/.git" ]; then
+          sudo git clone https://github.com/EliteUser/scd.git /usr/apps/sc-downloader
         fi
-        cd $APP_PATH
+        cd /usr/apps/sc-downloader
         sudo git pull origin master
 
         # Build the Docker image
-        sudo docker build -t $APP_NAME .
+        sudo docker build -t sc-downloader .
 
         # Stop and remove the existing container if it exists
-        if sudo docker ps -q -f name=$APP_NAME; then
-          sudo docker stop $APP_NAME
-          sudo docker rm $APP_NAME
+        if sudo docker ps -q -f name=sc-downloader; then
+          sudo docker stop sc-downloader
+          sudo docker rm sc-downloader
         fi
 
         # Run the new container
-        sudo docker run -d -p 3000:3000 --name $APP_NAME $APP_NAME
+        sudo docker run -d -p 3000:3000 --name sc-downloader sc-downloader
         '
