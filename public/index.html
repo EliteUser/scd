@@ -1,75 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Track Downloader</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-<div class="container">
-    <h1 class="text-center">Download Track</h1>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="text-center">Download Track</h1>
 
-    <form id="downloadForm">
+      <form id="downloadForm">
         <div class="form-wrapper">
-            <div class="form-control">
-                <label for="trackUrl">Track URL</label>
-                <input type="text" id="trackUrl" class="form-input" placeholder="SoundCloud URL" required>
-            </div>
+          <div class="form-control">
+            <label for="trackUrl">Track URL</label>
+            <input
+              type="text"
+              id="trackUrl"
+              class="form-input"
+              placeholder="SoundCloud URL"
+              required
+            />
+          </div>
 
-            <div class="form-control">
-                <label for="trackName">Name</label>
-                <input type="text" id="trackName" class="form-input" placeholder="Artist - Track Name" required>
-            </div>
+          <div class="form-control">
+            <label for="trackName">Name</label>
+            <input
+              type="text"
+              id="trackName"
+              class="form-input"
+              placeholder="Artist - Track Name"
+              required
+            />
+          </div>
 
-            <div class="form-control">
-                <label for="albumName">Album Name (Optional)</label>
-                <input type="text" id="albumName" class="form-input" placeholder="Music">
-            </div>
+          <div class="form-control">
+            <label for="albumName">Album Name (Optional)</label>
+            <input
+              type="text"
+              id="albumName"
+              class="form-input"
+              placeholder="Music"
+            />
+          </div>
 
-            <div class="form-control">
-                <label for="lyrics">Lyrics (Optional)</label>
-                <textarea id="lyrics" class="form-input" rows="6"></textarea>
-            </div>
+          <div class="form-control">
+            <label for="lyrics">Lyrics (Optional)</label>
+            <textarea id="lyrics" class="form-input" rows="6"></textarea>
+          </div>
 
-            <button type="submit" id="downloadButton" class="btn btn-primary">Download</button>
+          <button type="submit" id="downloadButton" class="btn btn-primary">
+            Download
+          </button>
         </div>
-    </form>
+      </form>
 
-    <div id="loaderOverlay" class="loader-overlay">
+      <div id="loaderOverlay" class="loader-overlay">
         <div class="spinner"></div>
+      </div>
     </div>
-</div>
-<script>
-    document.getElementById('downloadForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const trackUrl = document.getElementById('trackUrl').value;
-        const trackName = document.getElementById('trackName').value;
-        const albumName = document.getElementById('albumName').value;
-        const lyrics = document.getElementById('lyrics').value;
+    <script>
+      document
+        .getElementById('downloadForm')
+        .addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const trackUrl = document.getElementById('trackUrl').value;
+          const trackName = document.getElementById('trackName').value;
+          const albumName = document.getElementById('albumName').value;
+          const lyrics = document.getElementById('lyrics').value;
 
-        const downloadButton = document.getElementById('downloadButton');
-        const loaderOverlay = document.getElementById('loaderOverlay');
+          const downloadButton = document.getElementById('downloadButton');
+          const loaderOverlay = document.getElementById('loaderOverlay');
 
-        downloadButton.disabled = true;
-        loaderOverlay.style.display = 'flex';
+          downloadButton.disabled = true;
+          loaderOverlay.style.display = 'flex';
 
-        try {
+          try {
             const response = await fetch('/download', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    url: trackUrl?.trim(),
-                    name: trackName?.trim(),
-                    album: albumName?.trim(),
-                    lyrics: lyrics?.trim()
-                }),
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                url: trackUrl?.trim(),
+                name: trackName?.trim(),
+                album: albumName?.trim(),
+                lyrics: lyrics?.trim(),
+              }),
             });
 
             if (!response.ok) {
-                throw new Error('Failed to download track');
+              throw new Error('Failed to download track');
             }
 
             const blob = await response.blob();
@@ -82,14 +103,14 @@
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-        } catch (error) {
+          } catch (error) {
             console.error('Error:', error);
             alert('Failed to download track');
-        } finally {
+          } finally {
             downloadButton.disabled = false;
             loaderOverlay.style.display = 'none';
-        }
-    });
-</script>
-</body>
+          }
+        });
+    </script>
+  </body>
 </html>

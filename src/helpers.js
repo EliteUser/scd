@@ -2,125 +2,165 @@ import crypto from 'node:crypto';
 import path from 'node:path';
 import fs from 'node:fs';
 import axios from 'axios';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import * as ChromeLauncher from 'chrome-launcher';
 
 import {
-    DEFAULT_ALBUM_NAME,
-    DEFAULT_TRACK_NAME,
-    DOWNLOADER_DOWNLOAD_SELECTOR,
-    DOWNLOADER_IMAGE_SELECTOR,
-    DOWNLOADER_INPUT_SELECTOR,
-    DOWNLOADER_SUBMIT_SELECTOR,
-    DOWNLOADER_URL
+  DEFAULT_ALBUM_NAME,
+  DEFAULT_TRACK_NAME,
+  DOWNLOADER_DOWNLOAD_SELECTOR,
+  DOWNLOADER_IMAGE_SELECTOR,
+  DOWNLOADER_INPUT_SELECTOR,
+  DOWNLOADER_SUBMIT_SELECTOR,
+  DOWNLOADER_URL,
 } from './constants.js';
-import {processTrack} from './music-processor.js';
+import { processTrack } from './music-processor.js';
 
 export const getId = () => {
-    return crypto.randomBytes(16).toString('hex').slice(0, 8);
-}
+  return crypto.randomBytes(16).toString('hex').slice(0, 8);
+};
 
 const removeFolder = (folder) => {
-    if (fs.existsSync(folder)) {
-        fs.rmSync(folder, {recursive: true});
-    }
-}
+  if (fs.existsSync(folder)) {
+    fs.rmSync(folder, { recursive: true });
+  }
+};
+
+const setupBrowser = async () => {
+  const chromeExecutablePath = ChromeLauncher.Launcher.getInstallations()[0];
+
+  const browser = await puppeteer.launch({
+    executablePath: chromeExecutablePath,
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-gpu',
+      '--window-size=1920x1080',
+    ],
+    defaultViewport: null,
+  });
+
+  return browser;
+};
 
 const downloadFile = async (options) => {
-    const {url, folder, name = DEFAULT_TRACK_NAME, type = 'mp3'} = options;
+  const { url, folder, name = DEFAULT_TRACK_NAME, type = 'mp3' } = options;
 
-    const filePath = path.resolve('./', folder, `${name}.${type}`);
-    const fileStream = fs.createWriteStream(filePath);
+  const filePath = path.resolve('./', folder, `${name}.${type}`);
+  const fileStream = fs.createWriteStream(filePath);
 
-    try {
-        const response = await axios({
-            url,
-            method: 'GET',
-            responseType: 'stream'
-        });
+  try {
+    const response = await axios({
+      url,
+      method: 'GET',
+      responseType: 'stream',
+    });
 
-        response.data.pipe(fileStream);
+    response.data.pipe(fileStream);
 
-        return new Promise((resolve, reject) => {
-            fileStream.on('finish', resolve);
-            fileStream.on('error', reject);
-        });
-    } catch (error) {
-        console.error('Error downloading track:', error);
-        throw error;
-    }
+    return new Promise((resolve, reject) => {
+      fileStream.on('finish', resolve);
+      fileStream.on('error', reject);
+    });
+  } catch (error) {
+    console.error('Error downloading track:', error);
+    throw error;
+  }
 };
 
 export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: true
-    });
+  const browser = await setupBrowser();
 
-    const page = await browser.newPage();
+  const page = await browser.newPage();
 
-    const downloadFolder = `track_${getId()}`;
+  const downloadFolder = `track_${getId()}`;
 
-    console.info(`Starting download assets for track: ${name}`);
+  console.info(`Starting download assets for track: ${name}`);
 
-    return new Promise(async (resolve, reject) => {
-        try {
-            await page.goto(DOWNLOADER_URL, {waitUntil: 'networkidle2'});
+  return new Promise(async (resolve, reject) => {
+    try {
+      await page.goto(DOWNLOADER_URL, { waitUntil: 'networkidle2' });
 
-            /* Type the URL into the input field */
-            await page.type(DOWNLOADER_INPUT_SELECTOR, url);
+      /* Type the URL into the input field */
+      await page.type(DOWNLOADER_INPUT_SELECTOR, url);
 
-            /* Click the submit button */
-            await page.click(DOWNLOADER_SUBMIT_SELECTOR);
+      /* Click the submit button */
+      await page.click(DOWNLOADER_SUBMIT_SELECTOR);
 
-            /* Wait for the download link and image to appear */
-            await Promise.all([
-                page.waitForSelector(DOWNLOADER_DOWNLOAD_SELECTOR, {timeout: 60000}),
-                page.waitForSelector(DOWNLOADER_IMAGE_SELECTOR, {timeout: 60000})
+      /* Wait for the download link and image to appear */
+      await Promise.all([
+        page.waitForSelector(DOWNLOADER_DOWNLOAD_SELECTOR, { timeout: 60000 }),
+        page.waitForSelector(DOWNLOADER_IMAGE_SELECTOR, { timeout: 60000 }),
+      ]);
 
-            ]);
+      const trackUrl = await page.$eval(
+        DOWNLOADER_DOWNLOAD_SELECTOR,
+        (a) => a.href
+      );
+      const imageUrl = await page.$eval(
+        DOWNLOADER_IMAGE_SELECTOR,
+        (img) => img.src
+      );
 
-            const trackUrl = await page.$eval(DOWNLOADER_DOWNLOAD_SELECTOR, a => a.href);
-            const imageUrl = await page.$eval(DOWNLOADER_IMAGE_SELECTOR, img => img.src);
+      if (!trackUrl || !imageUrl) {
+        reject(new Error('Failed to download track assets'));
+      }
 
-            if (!trackUrl || !imageUrl) {
-                reject(new Error('Failed to download track assets'));
-            }
+      /* Create folder for download */
+      if (!fs.existsSync(downloadFolder)) {
+        fs.mkdirSync(downloadFolder);
+      }
 
-            /* Create folder for download */
-            if (!fs.existsSync(downloadFolder)) {
-                fs.mkdirSync(downloadFolder);
-            }
+      await Promise.all([
+        downloadFile({
+          url: trackUrl,
+          folder: downloadFolder,
+          name,
+          type: 'mp3',
+        }),
+        downloadFile({
+          url: imageUrl,
+          folder: downloadFolder,
+          name,
+          type: 'jpg',
+        }),
+      ]);
 
-            await Promise.all([
-                downloadFile({url: trackUrl, folder: downloadFolder, name, type: 'mp3'}),
-                downloadFile({url: imageUrl, folder: downloadFolder, name, type: 'jpg'})
-            ]);
+      console.info('Track assets downloaded successfully!');
 
-            console.info('Track assets downloaded successfully!');
-
-            resolve(downloadFolder);
-        } catch (err) {
-            console.error('An error occurred:', err.message);
-            reject(err);
-        } finally {
-            await browser.close();
-        }
-    });
+      resolve(downloadFolder);
+    } catch (err) {
+      console.error('An error occurred:', err.message);
+      reject(err);
+    } finally {
+      await browser.close();
+    }
+  });
 };
 
 export const getProcessedTrack = async (options) => {
-    const {url, name = DEFAULT_TRACK_NAME, album = DEFAULT_ALBUM_NAME, lyrics} = options;
+  const {
+    url,
+    name = DEFAULT_TRACK_NAME,
+    album = DEFAULT_ALBUM_NAME,
+    lyrics,
+  } = options;
 
-    const folderPath = await downloadTrackAssets(url, name);
+  const folderPath = await downloadTrackAssets(url, name);
 
-    setTimeout(() => {
-        removeFolder(folderPath);
-    }, 60000);
+  setTimeout(() => {
+    removeFolder(folderPath);
+  }, 60000);
 
-    return await processTrack({
-        folderPath,
-        name,
-        album,
-        lyrics
-    });
-}
+  return await processTrack({
+    folderPath,
+    name,
+    album,
+    lyrics,
+  });
+};
