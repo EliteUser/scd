@@ -26,6 +26,9 @@ const removeFolder = (folder) => {
   }
 };
 
+const wait = (milliseconds) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
 const setupBrowser = async () => {
   const chromeExecutablePath = ChromeLauncher.Launcher.getInstallations()[0];
 
@@ -68,11 +71,41 @@ const closeAgreementPopup = async (page) => {
 
   try {
     const agreementButton = await page.$(agreementSelector);
+
     if (agreementButton) {
       await agreementButton.click();
+      await wait(500);
+
+      console.info('Agreement popup closed.');
     }
   } catch (err) {
     console.error('Error closing agreement popup:', err);
+  }
+};
+
+
+const clickElement = async (selector) => {
+  let clicked = false;
+  
+  while (!clicked) {
+    try {
+      await closeAgreementPopup();
+      
+      const element = await page.$(selector);
+
+      if (element) {
+        await element.click();
+        clicked = true;
+        console.log(`Clicked element: ${selector}`);
+      } else {
+        console.log(`Element ${selector} not found.`);
+        break;
+      }
+    } catch (error) {
+      console.error(`Error clicking element ${selector}:`, error);
+    }
+
+    await wait(500);
   }
 };
 
@@ -85,11 +118,14 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
 
   console.info(`Starting download assets for track: ${name}`);
 
+  let agreementIndervalId;
+
   return new Promise(async (resolve, reject) => {
     try {
       await page.goto(DOWNLOADER_URL, { waitUntil: 'networkidle2' });
+      await wait(1000);
 
-      const agreementPopupChecker = setInterval(async () => {
+      agreementIndervalId = setInterval(async () => {
         await closeAgreementPopup(page);
       }, 2000);
 
@@ -97,7 +133,7 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
       await page.type(DOWNLOADER_INPUT_SELECTOR, url);
 
       /* Click the submit button */
-      await page.click(DOWNLOADER_SUBMIT_SELECTOR);
+      await clickElement(DOWNLOADER_SUBMIT_SELECTOR);
 
       await page.screenshot({ path: 'screenshot1.png' });
 
@@ -149,13 +185,14 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
           type: 'jpg',
         }),
       ]);
-      
+
       console.info('Track assets downloaded successfully!');
 
-      clearInterval(agreementPopupChecker);
+      clearInterval(agreementIndervalId);
       resolve(downloadFolder);
     } catch (err) {
       console.error('An error occurred:', err.message);
+      clearInterval(agreementIndervalId);
       reject(err);
     } finally {
       await browser.close();
