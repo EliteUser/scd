@@ -16,6 +16,6 @@
     "cors": "2.8.5",
     "express": "4.19.2",
     "node-id3": "0.2.6",
-    "puppeteer-core": "23.2.1"
+    "puppeteer-core": "23.3.0"
   }
 }
