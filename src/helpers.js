@@ -63,7 +63,7 @@ const downloadFile = async (options) => {
   }
 };
 
-const closeAgreementPopup = async () => {
+const closeAgreementPopup = async (page) => {
   const agreementSelector = '.fc-button[aria-label="Consent"]';
 
   try {
@@ -90,7 +90,7 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
       await page.goto(DOWNLOADER_URL, { waitUntil: 'networkidle2' });
 
       const agreementPopupChecker = setInterval(async () => {
-        await closeAgreementPopup();
+        await closeAgreementPopup(page);
       }, 2000);
 
       /* Type the URL into the input field */
