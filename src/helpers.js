@@ -63,6 +63,19 @@ const downloadFile = async (options) => {
   }
 };
 
+const closeAgreementPopup = async () => {
+  const agreementSelector = '.fc-button[aria-label="Consent"]';
+
+  try {
+    const agreementButton = await page.$(agreementSelector);
+    if (agreementButton) {
+      await agreementButton.click();
+    }
+  } catch (err) {
+    console.error('Error closing agreement popup:', err);
+  }
+};
+
 export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
   const browser = await setupBrowser();
 
@@ -76,15 +89,17 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
     try {
       await page.goto(DOWNLOADER_URL, { waitUntil: 'networkidle2' });
 
+      const agreementPopupChecker = setInterval(async () => {
+        await closeAgreementPopup();
+      }, 2000);
+
       /* Type the URL into the input field */
       await page.type(DOWNLOADER_INPUT_SELECTOR, url);
 
       /* Click the submit button */
       await page.click(DOWNLOADER_SUBMIT_SELECTOR);
-      await page.screenshot({ path: 'screenshot1.png' });
 
-      const agreementButton = await page.$('.fc-button[aria-label="Consent"]');
-      await agreementButton?.click();
+      await page.screenshot({ path: 'screenshot1.png' });
 
       /* Wait for the download link and image to appear */
       await Promise.all([
@@ -97,6 +112,7 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
           timeout: 60000,
         }),
       ]);
+
       await page.screenshot({ path: 'screenshot2.png' });
 
       const trackUrl = await page.$eval(
@@ -116,6 +132,7 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
       if (!fs.existsSync(downloadFolder)) {
         fs.mkdirSync(downloadFolder);
       }
+
       await page.screenshot({ path: 'screenshot3.png' });
 
       await Promise.all([
@@ -132,9 +149,10 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
           type: 'jpg',
         }),
       ]);
-
+      
       console.info('Track assets downloaded successfully!');
 
+      clearInterval(agreementPopupChecker);
       resolve(downloadFolder);
     } catch (err) {
       console.error('An error occurred:', err.message);
