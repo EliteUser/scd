@@ -26,9 +26,6 @@ const removeFolder = (folder) => {
   }
 };
 
-const wait = (milliseconds) =>
-  new Promise((resolve) => setTimeout(resolve, milliseconds));
-
 const setupBrowser = async () => {
   const chromeExecutablePath = ChromeLauncher.Launcher.getInstallations()[0];
 
@@ -66,48 +63,6 @@ const downloadFile = async (options) => {
   }
 };
 
-const closeAgreementPopup = async (page) => {
-  const agreementSelector = '.fc-button[aria-label="Consent"]';
-
-  try {
-    const agreementButton = await page.$(agreementSelector);
-
-    if (agreementButton) {
-      await agreementButton.click();
-      await wait(500);
-
-      console.info('Agreement popup closed.');
-    }
-  } catch (err) {
-    console.error('Error closing agreement popup:', err);
-  }
-};
-
-const clickElement = async (page, selector) => {
-  let clicked = false;
-
-  while (!clicked) {
-    try {
-      await closeAgreementPopup(page);
-
-      const element = await page.$(selector);
-
-      if (element) {
-        await element.click();
-        clicked = true;
-        console.log(`Clicked element: ${selector}`);
-      } else {
-        console.log(`Element ${selector} not found.`);
-        break;
-      }
-    } catch (error) {
-      console.error(`Error clicking element ${selector}:`, error);
-    }
-
-    await wait(500);
-  }
-};
-
 export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
   const browser = await setupBrowser();
 
@@ -117,24 +72,41 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
 
   console.info(`Starting download assets for track: ${name}`);
 
-  let agreementIndervalId;
-
   return new Promise(async (resolve, reject) => {
     try {
       await page.goto(DOWNLOADER_URL, { waitUntil: 'networkidle2' });
-      await wait(1000);
 
-      agreementIndervalId = setInterval(async () => {
-        await closeAgreementPopup(page);
-      }, 2000);
+      /* Wait for the url input and submit button to appear */
+      await Promise.all([
+        page.waitForSelector(DOWNLOADER_INPUT_SELECTOR, {
+          visible: true,
+          timeout: 15000,
+        }),
+        page.waitForSelector(DOWNLOADER_SUBMIT_SELECTOR, {
+          visible: true,
+          timeout: 15000,
+        }),
+      ]);
 
-      /* Type the URL into the input field */
-      await page.type(DOWNLOADER_INPUT_SELECTOR, url);
+      const urlInput = await page.$(DOWNLOADER_INPUT_SELECTOR);
+      const button = await page.$(DOWNLOADER_SUBMIT_SELECTOR);
 
-      /* Click the submit button */
-      await clickElement(page, DOWNLOADER_SUBMIT_SELECTOR);
+      if (!urlInput || !button) {
+        reject(new Error('Failed to find input or button'));
+      }
 
-      await page.screenshot({ path: 'screenshot1.png' });
+      /* Set the URL into the input field, because
+       * agreement popup may break the interactions
+       */
+      await page.evaluate(
+        (input, url) => {
+          input.value = url;
+        },
+        urlInput,
+        url
+      );
+
+      await button.click();
 
       /* Wait for the download link and image to appear */
       await Promise.all([
@@ -147,8 +119,6 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
           timeout: 60000,
         }),
       ]);
-
-      await page.screenshot({ path: 'screenshot2.png' });
 
       const trackUrl = await page.$eval(
         DOWNLOADER_DOWNLOAD_SELECTOR,
@@ -168,8 +138,6 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
         fs.mkdirSync(downloadFolder);
       }
 
-      await page.screenshot({ path: 'screenshot3.png' });
-
       await Promise.all([
         downloadFile({
           url: trackUrl,
@@ -187,11 +155,9 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
 
       console.info('Track assets downloaded successfully!');
 
-      clearInterval(agreementIndervalId);
       resolve(downloadFolder);
     } catch (err) {
       console.error('An error occurred:', err.message);
-      clearInterval(agreementIndervalId);
       reject(err);
     } finally {
       await browser.close();
