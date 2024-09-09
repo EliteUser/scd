@@ -32,10 +32,7 @@ const setupBrowser = async () => {
   const browser = await puppeteer.launch({
     executablePath: chromeExecutablePath,
     headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-    ],
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
   return browser;
@@ -84,12 +81,23 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
 
       /* Click the submit button */
       await page.click(DOWNLOADER_SUBMIT_SELECTOR);
+      await page.screenshot({ path: 'screenshot1.png' });
+
+      const agreementButton = await page.$('.fc-button[aria-label="Consent"]');
+      await agreementButton?.click();
 
       /* Wait for the download link and image to appear */
       await Promise.all([
-        page.waitForSelector(DOWNLOADER_DOWNLOAD_SELECTOR, { timeout: 60000 }),
-        page.waitForSelector(DOWNLOADER_IMAGE_SELECTOR, { timeout: 60000 }),
+        page.waitForSelector(DOWNLOADER_DOWNLOAD_SELECTOR, {
+          visible: true,
+          timeout: 60000,
+        }),
+        page.waitForSelector(DOWNLOADER_IMAGE_SELECTOR, {
+          visible: true,
+          timeout: 60000,
+        }),
       ]);
+      await page.screenshot({ path: 'screenshot2.png' });
 
       const trackUrl = await page.$eval(
         DOWNLOADER_DOWNLOAD_SELECTOR,
@@ -108,6 +116,7 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
       if (!fs.existsSync(downloadFolder)) {
         fs.mkdirSync(downloadFolder);
       }
+      await page.screenshot({ path: 'screenshot3.png' });
 
       await Promise.all([
         downloadFile({
