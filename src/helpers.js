@@ -88,7 +88,7 @@ const clickElement = async (page, selector) => {
 
   while (!clicked) {
     try {
-      await closeAgreementPopup();
+      await closeAgreementPopup(page);
 
       const element = await page.$(selector);
 
