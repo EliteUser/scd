@@ -32,7 +32,7 @@ const setupBrowser = async () => {
   const browser = await puppeteer.launch({
     executablePath: chromeExecutablePath,
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--incognito'],
   });
 
   return browser;
