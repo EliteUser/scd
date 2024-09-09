@@ -83,14 +83,13 @@ const closeAgreementPopup = async (page) => {
   }
 };
 
-
-const clickElement = async (selector) => {
+const clickElement = async (page, selector) => {
   let clicked = false;
-  
+
   while (!clicked) {
     try {
       await closeAgreementPopup();
-      
+
       const element = await page.$(selector);
 
       if (element) {
@@ -133,7 +132,7 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
       await page.type(DOWNLOADER_INPUT_SELECTOR, url);
 
       /* Click the submit button */
-      await clickElement(DOWNLOADER_SUBMIT_SELECTOR);
+      await clickElement(page, DOWNLOADER_SUBMIT_SELECTOR);
 
       await page.screenshot({ path: 'screenshot1.png' });
 
