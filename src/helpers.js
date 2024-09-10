@@ -32,7 +32,7 @@ const setupBrowser = async () => {
   const browser = await puppeteer.launch({
     executablePath: chromeExecutablePath,
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--incognito'],
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
   return browser;
@@ -67,6 +67,17 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
   const browser = await setupBrowser();
 
   const page = await browser.newPage();
+  await page.setRequestInterception(true);
+
+  page.on('request', (req) => {
+    const resourceType = req.resourceType();
+
+    if (['stylesheet', 'font'].includes(resourceType)) {
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
 
   const downloadFolder = `track_${getId()}`;
 
@@ -99,14 +110,14 @@ export const downloadTrackAssets = async (url, name = DEFAULT_TRACK_NAME) => {
        * agreement popup may break the interactions
        */
       await page.evaluate(
-        (input, url) => {
+        (input, url, button) => {
           input.value = url;
+          button.click();
         },
         urlInput,
-        url
+        url,
+        button
       );
-
-      await button.click();
 
       /* Wait for the download link and image to appear */
       await Promise.all([
